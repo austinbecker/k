@@ -40,12 +40,14 @@
       color: #f87171;
       font-size: 20px;
       font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
   <h1>Coin Collector</h1>
+
   <div id="score">Score: 0</div>
 
   <canvas id="gameCanvas" width="800" height="500"></canvas>
@@ -109,7 +111,7 @@
     document.addEventListener("keydown", function(event) {
       keys[event.key.toLowerCase()] = true;
 
-      // Restart only after dying
+      // Press Spacebar to restart after dying
       if (event.code === "Space" && gameOver) {
         restartGame();
       }
@@ -136,6 +138,7 @@
         player.x += player.speed;
       }
 
+      // Keep the player inside the game area
       player.x = Math.max(
         0,
         Math.min(canvas.width - player.width, player.x)
@@ -152,7 +155,7 @@
         brick.x += brick.speedX;
         brick.y += brick.speedY;
 
-        // Bounce horizontally
+        // Bounce off the left and right walls
         if (
           brick.x <= 0 ||
           brick.x + brick.width >= canvas.width
@@ -160,7 +163,7 @@
           brick.speedX *= -1;
         }
 
-        // Bounce vertically
+        // Bounce off the top and bottom walls
         if (
           brick.y <= 0 ||
           brick.y + brick.height >= canvas.height
@@ -191,16 +194,63 @@
         score++;
         scoreText.textContent = "Score: " + score;
 
+        // Move the coin to a new position
         coin.x = Math.random() * (canvas.width - coin.size);
         coin.y = Math.random() * (canvas.height - coin.size);
+
+        // Move all bricks to new safe positions
+        moveBricksToSafePositions();
       }
+    }
+
+    function moveBricksToSafePositions() {
+      bricks.forEach(brick => {
+        let safePosition = false;
+
+        while (!safePosition) {
+          brick.x = Math.random() * (canvas.width - brick.width);
+          brick.y = Math.random() * (canvas.height - brick.height);
+
+          // Keep the brick away from the player
+          const playerTooClose =
+            player.x < brick.x + brick.width + 50 &&
+            player.x + player.width + 50 > brick.x &&
+            player.y < brick.y + brick.height + 50 &&
+            player.y + player.height + 50 > brick.y;
+
+          // Keep the brick away from the coin
+          const coinTooClose =
+            coin.x < brick.x + brick.width &&
+            coin.x + coin.size > brick.x &&
+            coin.y < brick.y + brick.height &&
+            coin.y + coin.size > brick.y;
+
+          if (!playerTooClose && !coinTooClose) {
+            safePosition = true;
+          }
+        }
+
+        // Give the brick a new random movement direction
+        brick.speedX = Math.random() * 6 - 3;
+        brick.speedY = Math.random() * 6 - 3;
+
+        // Make sure the brick moves enough
+        if (Math.abs(brick.speedX) < 1) {
+          brick.speedX = 2;
+        }
+
+        if (Math.abs(brick.speedY) < 1) {
+          brick.speedY = 2;
+        }
+      });
     }
 
     function checkBrickCollision() {
       for (const brick of bricks) {
         if (isColliding(player, brick)) {
           gameOver = true;
-          message.textContent = "You died! Press SPACEBAR to restart.";
+          message.textContent =
+            "You died! Press SPACEBAR to restart.";
           return;
         }
       }
@@ -219,6 +269,7 @@
     function drawCoin() {
       ctx.fillStyle = coin.color;
       ctx.beginPath();
+
       ctx.arc(
         coin.x + coin.size / 2,
         coin.y + coin.size / 2,
@@ -226,12 +277,14 @@
         0,
         Math.PI * 2
       );
+
       ctx.fill();
     }
 
     function drawBricks() {
       bricks.forEach(brick => {
         ctx.fillStyle = "#dc2626";
+
         ctx.fillRect(
           brick.x,
           brick.y,
@@ -241,6 +294,7 @@
 
         ctx.strokeStyle = "#7f1d1d";
         ctx.lineWidth = 3;
+
         ctx.strokeRect(
           brick.x,
           brick.y,
@@ -263,14 +317,8 @@
       coin.x = Math.random() * (canvas.width - coin.size);
       coin.y = Math.random() * (canvas.height - coin.size);
 
-      bricks[0].x = 100;
-      bricks[0].y = 100;
-
-      bricks[1].x = 600;
-      bricks[1].y = 350;
-
-      bricks[2].x = 350;
-      bricks[2].y = 50;
+      // Put bricks in safe positions when restarting
+      moveBricksToSafePositions();
     }
 
     function gameLoop() {
