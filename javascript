@@ -44,6 +44,62 @@ const bricks = [
     height: 80,
     speedX: 0,
     speedY: 3
+  },
+  {
+    x: 200,
+    y: 400,
+    width: 90,
+    height: 30,
+    speedX: 2,
+    speedY: -2
+  },
+  {
+    x: 650,
+    y: 100,
+    width: 30,
+    height: 90,
+    speedX: -2,
+    speedY: 2
+  },
+  {
+    x: 450,
+    y: 300,
+    width: 100,
+    height: 30,
+    speedX: 3,
+    speedY: -1
+  },
+  {
+    x: 50,
+    y: 300,
+    width: 30,
+    height: 90,
+    speedX: 1,
+    speedY: 3
+  },
+  {
+    x: 500,
+    y: 150,
+    width: 70,
+    height: 30,
+    speedX: -3,
+    speedY: 2
+  },
+  {
+    x: 250,
+    y: 50,
+    width: 90,
+    height: 30,
+    speedX: 2,
+    speedY: 2
+  },
+  {
+    x: 700,
+    y: 250,
+    width: 70,
+    height: 30,
+    speedX: -2,
+    speedY: -2
   }
 ];
 
@@ -143,22 +199,25 @@ function checkCoinCollision() {
 function moveBricksToSafePositions() {
   bricks.forEach(brick => {
     let safePosition = false;
+    let attempts = 0;
 
-    while (!safePosition) {
+    while (!safePosition && attempts < 100) {
+      attempts++;
+
       brick.x = Math.random() * (canvas.width - brick.width);
       brick.y = Math.random() * (canvas.height - brick.height);
 
       const playerTooClose =
-        player.x < brick.x + brick.width + 50 &&
-        player.x + player.width + 50 > brick.x &&
-        player.y < brick.y + brick.height + 50 &&
-        player.y + player.height + 50 > brick.y;
+        player.x < brick.x + brick.width + 60 &&
+        player.x + player.width + 60 > brick.x &&
+        player.y < brick.y + brick.height + 60 &&
+        player.y + player.height + 60 > brick.y;
 
       const coinTooClose =
-        coin.x < brick.x + brick.width &&
-        coin.x + coin.size > brick.x &&
-        coin.y < brick.y + brick.height &&
-        coin.y + coin.size > brick.y;
+        coin.x < brick.x + brick.width + 30 &&
+        coin.x + coin.size + 30 > brick.x &&
+        coin.y < brick.y + brick.height + 30 &&
+        coin.y + coin.size + 30 > brick.y;
 
       if (!playerTooClose && !coinTooClose) {
         safePosition = true;
@@ -184,6 +243,7 @@ function checkBrickCollision() {
       gameOver = true;
       message.textContent =
         "You died! Press SPACEBAR to restart.";
+      return;
     }
   }
 }
