@@ -20,7 +20,6 @@ const coin = {
   color: "gold"
 };
 
-// There are 10 kill bricks
 const bricks = [
   { x: 80,  y: 80,  width: 80,  height: 30, speedX: 3,  speedY: 1 },
   { x: 250, y: 60,  width: 90,  height: 30, speedX: -2, speedY: 2 },
@@ -128,10 +127,15 @@ function checkCoinCollision() {
 }
 
 function moveBricksToSafePositions() {
+  const placedBricks = [];
+
   bricks.forEach(function(brick) {
     let safe = false;
+    let attempts = 0;
 
-    while (!safe) {
+    while (!safe && attempts < 1000) {
+      attempts++;
+
       brick.x = Math.random() * (canvas.width - brick.width);
       brick.y = Math.random() * (canvas.height - brick.height);
 
@@ -147,10 +151,25 @@ function moveBricksToSafePositions() {
         coin.y < brick.y + brick.height + 30 &&
         coin.y + coin.size + 30 > brick.y;
 
-      if (!playerTooClose && !coinTooClose) {
+      const anotherBrickTooClose = placedBricks.some(function(otherBrick) {
+        return (
+          brick.x < otherBrick.x + otherBrick.width + 20 &&
+          brick.x + brick.width + 20 > otherBrick.x &&
+          brick.y < otherBrick.y + otherBrick.height + 20 &&
+          brick.y + brick.height + 20 > otherBrick.y
+        );
+      });
+
+      if (
+        !playerTooClose &&
+        !coinTooClose &&
+        !anotherBrickTooClose
+      ) {
         safe = true;
       }
     }
+
+    placedBricks.push(brick);
 
     brick.speedX = Math.random() * 6 - 3;
     brick.speedY = Math.random() * 6 - 3;
@@ -205,6 +224,7 @@ function drawCoin() {
 function drawBricks() {
   bricks.forEach(function(brick) {
     ctx.fillStyle = "red";
+
     ctx.fillRect(
       brick.x,
       brick.y,
@@ -214,6 +234,7 @@ function drawBricks() {
 
     ctx.strokeStyle = "darkred";
     ctx.lineWidth = 3;
+
     ctx.strokeRect(
       brick.x,
       brick.y,
@@ -255,5 +276,8 @@ function gameLoop() {
 
   requestAnimationFrame(gameLoop);
 }
+
+// Arrange all 10 bricks safely when the game first starts
+moveBricksToSafePositions();
 
 gameLoop();
