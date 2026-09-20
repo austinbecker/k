@@ -1,0 +1,181 @@
+html
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coin Collector</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #111827;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin: 20px 0 8px;
+    }
+
+    #score {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    canvas {
+      width: min(90vw, 800px);
+      height: auto;
+      border: 4px solid white;
+      background: #1f2937;
+      border-radius: 10px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: 0;
+      border-radius: 6px;
+      background: #22c55e;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Coin Collector</h1>
+  <div id="score">Score: 0</div>
+
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+  <button onclick="restartGame()">Restart Game</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreText = document.getElementById("score");
+
+    const player = {
+      x: 380,
+      y: 230,
+      size: 30,
+      speed: 5,
+      color: "#3b82f6"
+    };
+
+    const coin = {
+      x: 200,
+      y: 150,
+      size: 18,
+      color: "#facc15"
+    };
+
+    const keys = {};
+    let score = 0;
+
+    document.addEventListener("keydown", function(event) {
+      keys[event.key.toLowerCase()] = true;
+    });
+
+    document.addEventListener("keyup", function(event) {
+      keys[event.key.toLowerCase()] = false;
+    });
+
+    function movePlayer() {
+      if (keys["arrowup"] || keys["w"]) {
+        player.y -= player.speed;
+      }
+
+      if (keys["arrowdown"] || keys["s"]) {
+        player.y += player.speed;
+      }
+
+      if (keys["arrowleft"] || keys["a"]) {
+        player.x -= player.speed;
+      }
+
+      if (keys["arrowright"] || keys["d"]) {
+        player.x += player.speed;
+      }
+
+      // Keep the player inside the canvas
+      player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
+      player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+    }
+
+    function checkCollision() {
+      const touching =
+        player.x < coin.x + coin.size &&
+        player.x + player.size > coin.x &&
+        player.y < coin.y + coin.size &&
+        player.y + player.size > coin.y;
+
+      if (touching) {
+        score++;
+        scoreText.textContent = "Score: " + score;
+
+        coin.x = Math.random() * (canvas.width - coin.size);
+        coin.y = Math.random() * (canvas.height - coin.size);
+      }
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+    }
+
+    function drawCoin() {
+      ctx.fillStyle = coin.color;
+      ctx.beginPath();
+      ctx.arc(
+        coin.x + coin.size / 2,
+        coin.y + coin.size / 2,
+        coin.size / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      movePlayer();
+      checkCollision();
+      drawPlayer();
+      drawCoin();
+
+      requestAnimationFrame(drawGame);
+    }
+
+    function restartGame() {
+      score = 0;
+      scoreText.textContent = "Score: 0";
+
+      player.x = 380;
+      player.y = 230;
+
+      coin.x = Math.random() * (canvas.width - coin.size);
+      coin.y = Math.random() * (canvas.height - coin.size);
+    }
+
+    drawGame();
+  </script>
+</body>
+</html>
