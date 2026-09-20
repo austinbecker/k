@@ -10,97 +10,28 @@ const player = {
   width: 30,
   height: 30,
   speed: 5,
-  color: "#3b82f6"
+  color: "blue"
 };
 
 const coin = {
   x: 200,
   y: 150,
   size: 18,
-  color: "#facc15"
+  color: "gold"
 };
 
+// There are 10 kill bricks
 const bricks = [
-  {
-    x: 100,
-    y: 100,
-    width: 80,
-    height: 30,
-    speedX: 3,
-    speedY: 0
-  },
-  {
-    x: 600,
-    y: 350,
-    width: 100,
-    height: 30,
-    speedX: -3,
-    speedY: 0
-  },
-  {
-    x: 350,
-    y: 50,
-    width: 30,
-    height: 80,
-    speedX: 0,
-    speedY: 3
-  },
-  {
-    x: 200,
-    y: 400,
-    width: 90,
-    height: 30,
-    speedX: 2,
-    speedY: -2
-  },
-  {
-    x: 650,
-    y: 100,
-    width: 30,
-    height: 90,
-    speedX: -2,
-    speedY: 2
-  },
-  {
-    x: 450,
-    y: 300,
-    width: 100,
-    height: 30,
-    speedX: 3,
-    speedY: -1
-  },
-  {
-    x: 50,
-    y: 300,
-    width: 30,
-    height: 90,
-    speedX: 1,
-    speedY: 3
-  },
-  {
-    x: 500,
-    y: 150,
-    width: 70,
-    height: 30,
-    speedX: -3,
-    speedY: 2
-  },
-  {
-    x: 250,
-    y: 50,
-    width: 90,
-    height: 30,
-    speedX: 2,
-    speedY: 2
-  },
-  {
-    x: 700,
-    y: 250,
-    width: 70,
-    height: 30,
-    speedX: -2,
-    speedY: -2
-  }
+  { x: 80,  y: 80,  width: 80,  height: 30, speedX: 3,  speedY: 1 },
+  { x: 250, y: 60,  width: 90,  height: 30, speedX: -2, speedY: 2 },
+  { x: 500, y: 70,  width: 100, height: 30, speedX: 2, speedY: 1 },
+  { x: 680, y: 120, width: 30, height: 90, speedX: -2, speedY: 2 },
+  { x: 100, y: 250, width: 30, height: 100, speedX: 1, speedY: -3 },
+  { x: 280, y: 220, width: 100, height: 30, speedX: 3, speedY: -1 },
+  { x: 500, y: 250, width: 90, height: 30, speedX: -3, speedY: 2 },
+  { x: 700, y: 350, width: 30, height: 90, speedX: -1, speedY: -2 },
+  { x: 180, y: 420, width: 100, height: 30, speedX: 2, speedY: -2 },
+  { x: 450, y: 420, width: 120, height: 30, speedX: -2, speedY: -1 }
 ];
 
 const keys = {};
@@ -148,7 +79,7 @@ function movePlayer() {
 }
 
 function moveBricks() {
-  bricks.forEach(brick => {
+  bricks.forEach(function(brick) {
     brick.x += brick.speedX;
     brick.y += brick.speedY;
 
@@ -178,14 +109,14 @@ function isColliding(a, b) {
 }
 
 function checkCoinCollision() {
-  const coinObject = {
+  const coinBox = {
     x: coin.x,
     y: coin.y,
     width: coin.size,
     height: coin.size
   };
 
-  if (isColliding(player, coinObject)) {
+  if (isColliding(player, coinBox)) {
     score++;
     scoreText.textContent = "Score: " + score;
 
@@ -197,13 +128,10 @@ function checkCoinCollision() {
 }
 
 function moveBricksToSafePositions() {
-  bricks.forEach(brick => {
-    let safePosition = false;
-    let attempts = 0;
+  bricks.forEach(function(brick) {
+    let safe = false;
 
-    while (!safePosition && attempts < 100) {
-      attempts++;
-
+    while (!safe) {
       brick.x = Math.random() * (canvas.width - brick.width);
       brick.y = Math.random() * (canvas.height - brick.height);
 
@@ -220,7 +148,7 @@ function moveBricksToSafePositions() {
         coin.y + coin.size + 30 > brick.y;
 
       if (!playerTooClose && !coinTooClose) {
-        safePosition = true;
+        safe = true;
       }
     }
 
@@ -238,14 +166,13 @@ function moveBricksToSafePositions() {
 }
 
 function checkBrickCollision() {
-  for (const brick of bricks) {
+  bricks.forEach(function(brick) {
     if (isColliding(player, brick)) {
       gameOver = true;
       message.textContent =
         "You died! Press SPACEBAR to restart.";
-      return;
     }
-  }
+  });
 }
 
 function drawPlayer() {
@@ -276,9 +203,8 @@ function drawCoin() {
 }
 
 function drawBricks() {
-  bricks.forEach(brick => {
-    ctx.fillStyle = "#dc2626";
-
+  bricks.forEach(function(brick) {
+    ctx.fillStyle = "red";
     ctx.fillRect(
       brick.x,
       brick.y,
@@ -286,9 +212,8 @@ function drawBricks() {
       brick.height
     );
 
-    ctx.strokeStyle = "#7f1d1d";
+    ctx.strokeStyle = "darkred";
     ctx.lineWidth = 3;
-
     ctx.strokeRect(
       brick.x,
       brick.y,
