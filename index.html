@@ -1,6 +1,3 @@
-html
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,10 +6,6 @@ html
   <title>Coin Collector</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       min-height: 100vh;
@@ -25,35 +18,28 @@ html
     }
 
     h1 {
-      margin: 20px 0 8px;
+      margin-bottom: 8px;
     }
 
     #score {
       font-size: 20px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     canvas {
       width: min(90vw, 800px);
       height: auto;
       border: 4px solid white;
-      background: #1f2937;
       border-radius: 10px;
+      background: #1f2937;
     }
 
-    button {
+    #message {
       margin-top: 15px;
-      padding: 10px 20px;
-      border: 0;
-      border-radius: 6px;
-      background: #22c55e;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #16a34a;
+      min-height: 25px;
+      color: #f87171;
+      font-size: 20px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -64,17 +50,20 @@ html
 
   <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-  <button onclick="restartGame()">Restart Game</button>
+  <div id="message"></div>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+
     const scoreText = document.getElementById("score");
+    const message = document.getElementById("message");
 
     const player = {
       x: 380,
       y: 230,
-      size: 30,
+      width: 30,
+      height: 30,
       speed: 5,
       color: "#3b82f6"
     };
@@ -86,11 +75,44 @@ html
       color: "#facc15"
     };
 
+    const bricks = [
+      {
+        x: 100,
+        y: 100,
+        width: 80,
+        height: 30,
+        speedX: 3,
+        speedY: 0
+      },
+      {
+        x: 600,
+        y: 350,
+        width: 100,
+        height: 30,
+        speedX: -3,
+        speedY: 0
+      },
+      {
+        x: 350,
+        y: 50,
+        width: 30,
+        height: 80,
+        speedX: 0,
+        speedY: 3
+      }
+    ];
+
     const keys = {};
     let score = 0;
+    let gameOver = false;
 
     document.addEventListener("keydown", function(event) {
       keys[event.key.toLowerCase()] = true;
+
+      // Restart only after dying
+      if (event.code === "Space" && gameOver) {
+        restartGame();
+      }
     });
 
     document.addEventListener("keyup", function(event) {
@@ -114,19 +136,58 @@ html
         player.x += player.speed;
       }
 
-      // Keep the player inside the canvas
-      player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
-      player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+      player.x = Math.max(
+        0,
+        Math.min(canvas.width - player.width, player.x)
+      );
+
+      player.y = Math.max(
+        0,
+        Math.min(canvas.height - player.height, player.y)
+      );
     }
 
-    function checkCollision() {
-      const touching =
-        player.x < coin.x + coin.size &&
-        player.x + player.size > coin.x &&
-        player.y < coin.y + coin.size &&
-        player.y + player.size > coin.y;
+    function moveBricks() {
+      bricks.forEach(brick => {
+        brick.x += brick.speedX;
+        brick.y += brick.speedY;
 
-      if (touching) {
+        // Bounce horizontally
+        if (
+          brick.x <= 0 ||
+          brick.x + brick.width >= canvas.width
+        ) {
+          brick.speedX *= -1;
+        }
+
+        // Bounce vertically
+        if (
+          brick.y <= 0 ||
+          brick.y + brick.height >= canvas.height
+        ) {
+          brick.speedY *= -1;
+        }
+      });
+    }
+
+    function isColliding(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function checkCoinCollision() {
+      const coinObject = {
+        x: coin.x,
+        y: coin.y,
+        width: coin.size,
+        height: coin.size
+      };
+
+      if (isColliding(player, coinObject)) {
         score++;
         scoreText.textContent = "Score: " + score;
 
@@ -135,9 +196,24 @@ html
       }
     }
 
+    function checkBrickCollision() {
+      for (const brick of bricks) {
+        if (isColliding(player, brick)) {
+          gameOver = true;
+          message.textContent = "You died! Press SPACEBAR to restart.";
+          return;
+        }
+      }
+    }
+
     function drawPlayer() {
       ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.size, player.size);
+      ctx.fillRect(
+        player.x,
+        player.y,
+        player.width,
+        player.height
+      );
     }
 
     function drawCoin() {
@@ -153,29 +229,68 @@ html
       ctx.fill();
     }
 
-    function drawGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawBricks() {
+      bricks.forEach(brick => {
+        ctx.fillStyle = "#dc2626";
+        ctx.fillRect(
+          brick.x,
+          brick.y,
+          brick.width,
+          brick.height
+        );
 
-      movePlayer();
-      checkCollision();
-      drawPlayer();
-      drawCoin();
-
-      requestAnimationFrame(drawGame);
+        ctx.strokeStyle = "#7f1d1d";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(
+          brick.x,
+          brick.y,
+          brick.width,
+          brick.height
+        );
+      });
     }
 
     function restartGame() {
       score = 0;
+      gameOver = false;
+
       scoreText.textContent = "Score: 0";
+      message.textContent = "";
 
       player.x = 380;
       player.y = 230;
 
       coin.x = Math.random() * (canvas.width - coin.size);
       coin.y = Math.random() * (canvas.height - coin.size);
+
+      bricks[0].x = 100;
+      bricks[0].y = 100;
+
+      bricks[1].x = 600;
+      bricks[1].y = 350;
+
+      bricks[2].x = 350;
+      bricks[2].y = 50;
     }
 
-    drawGame();
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!gameOver) {
+        movePlayer();
+        moveBricks();
+        checkCoinCollision();
+        checkBrickCollision();
+      }
+
+      drawPlayer();
+      drawCoin();
+      drawBricks();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
   </script>
 </body>
 </html>
