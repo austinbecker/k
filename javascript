@@ -19,7 +19,7 @@ const coin = {
 };
 
 const bricks = [
-  { x: 80,  y: 80,  width: 80,  height: 30, speedX: 3,  speedY: 1 },
+  { x: 80,  y: 80,  width: 80,  height: 30, speedX: 3,  speedY: 100 },
   { x: 250, y: 60,  width: 90,  height: 30, speedX: -2, speedY: 2 },
   { x: 500, y: 70,  width: 100, height: 30, speedX: 2, speedY: 1 },
   { x: 680, y: 120, width: 30, height: 90, speedX: -2, speedY: 2 },
